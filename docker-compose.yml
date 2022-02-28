@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+
+  redis:
+    image: redis:latest
+
+  load-balancer:
+    image: nginx:latest
+    ports: ["80:80"]
+    volumes: ["./nginx.conf:/etc/nginx/conf.d/nginx.conf:ro"]
+
+  web-server:
+    image: busykoala/dummy_server:latest
+
+  authproxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    environment:
+    - OAUTH2_PROXY_PROVIDER=oidc
+    - OAUTH2_PROXY_UPSTREAM=static://200
+    - OAUTH2_PROXY_HTTP_ADDRESS=0.0.0.0:4180
+    - OAUTH2_PROXY_REDIRECT_URL=http://this-project.busykoala.io/oauth2/callback
+    - OAUTH2_PROXY_OIDC_ISSUER_URL=https://idp.busykoala.io/auth/realms/dvzo
+    - OAUTH2_PROXY_EMAIL_DOMAINS=*
+    - OAUTH2_PROXY_COOKIE_SECRET=ZMHe0wKFqWRnPwvSSakdZ9VFMPAVMj0LOGgnUyvVqJk=
+    - OAUTH2_PROXY_CLIENT_SECRET=gugus9dada-bla8-8888-8888-88a88aa88aaa
+    - OAUTH2_PROXY_CLIENT_ID=this-project-client
+    - OAUTH2_PROXY_COOKIE_SECURE=false  # enable when nginx setup for ssl
+    - OAUTH2_PROXY_COOKIE_SAMESITE=lax
+    - OAUTH2_PROXY_COOKIE_NAME=_oauth2_proxy
+    - OAUTH2_PROXY_WHITELIST_DOMAINS=this-project.busykoala.io
+    - OAUTH2_PROXY_SESSION_STORE_TYPE=redis
+    - OAUTH2_PROXY_REDIS_CONNECTION_URL=redis://redis
+    - OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER=true
+    - OAUTH2_PROXY_PASS_ACCESS_TOKEN=true
+    - OAUTH2_PROXY_PASS_USER_HEADERS=true
+    - OAUTH2_PROXY_SET_AUTHORIZATION_HEADER=true
+    - OAUTH2_PROXY_SET_XAUTHREQUEST=true
